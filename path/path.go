@@ -95,7 +95,7 @@ func (p *pathfinder) isEmpty(n *Node) bool {
 	}
 
 	c := p.m.Rows[n.Y][n.X]
-	if c.Content != matrix.Empty {
+	if c.Content != matrix.Empty && c.Content != matrix.Truck {
 		return false
 	}
 
@@ -129,54 +129,42 @@ func (p *pathfinder) computeCost(n *Node) int {
 	return abs(p.end.X-n.X) + abs(p.end.Y-n.Y)
 }
 
-func (p *pathfinder) Find(parent *Node) {
-	var n *Node
-
-	// Top
-	n = &Node{parent.X, parent.Y - 1, 0, parent}
-	if p.isEmpty(n) {
-		p.addOpen(n)
-		p.open = append(p.open, n)
+func (p *pathfinder) Find(parent *Node) (err error) {
+	nodes := [4]*Node{
+		{parent.X, parent.Y - 1, 0, parent}, // TOP
+		{parent.X - 1, parent.Y, 0, parent}, // LEFT
+		{parent.X, parent.Y + 1, 0, parent}, // BOTTOM
+		{parent.X + 1, parent.Y, 0, parent}, // RIGHT
 	}
 
-	// Bottom
-	n = &Node{parent.X, parent.Y + 1, 0, parent}
-	if p.isEmpty(n) {
-		p.addOpen(n)
+	for _, n := range nodes {
+		if p.isEmpty(n) {
+			n.cost = p.computeCost(n)
+			p.addOpen(n)
+		}
 	}
 
-	// Left
-	n = &Node{parent.X - 1, parent.Y, 0, parent}
-	if p.isEmpty(n) {
-		p.addOpen(n)
-	}
-
-	// Right
-	n = &Node{parent.X + 1, parent.Y, 0, parent}
-	if p.isEmpty(n) {
-		p.addOpen(n)
-	}
-
-	parent, err := p.getLowestCostOpenNode()
-
-	p.removeOpen(parent)
-	p.addClosed(parent)
+	parent, err = p.getLowestCostOpenNode()
 
 	if err != nil {
-		fmt.Print(err)
-	} else if p.isEnd(n) {
-		p.end = n
+		return
+	} else if p.isEnd(parent) {
+		p.end = parent
 		p.connectPath()
+		return
 	} else {
-		p.Find(parent)
+		p.removeOpen(parent)
+		p.addClosed(parent)
+		err = p.Find(parent)
 	}
+	return
 }
 
-func Find(m matrix.Matrix, start *Node, end *Node) Path {
+func Find(m matrix.Matrix, start *Node, end *Node) (Path, error) {
 	p := &pathfinder{m, start, end, make([]*Node, 0), make([]*Node, 0), make([]*Node, 0)}
 
 	p.closed = append(p.closed, start)
-	p.Find(start)
+	err := p.Find(start)
 
-	return p.path
+	return p.path, err
 }
