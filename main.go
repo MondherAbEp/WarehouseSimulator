@@ -1,8 +1,6 @@
 package main
 
 import (
-	"WarehouseSimulator/constraints"
-	"WarehouseSimulator/operator"
 	"fmt"
 	"os"
 )
@@ -13,11 +11,11 @@ func main() {
 		return
 	}
 
-	c, err := constraints.Get(os.Args[1])
+	c, err := getConstraints(os.Args[1])
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	operator.Work(c)
+	work(c)
 }

@@ -1,4 +1,4 @@
-package constraints
+package main
 
 import (
 	"testing"

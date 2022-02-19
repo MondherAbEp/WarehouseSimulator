@@ -1,28 +1,27 @@
-package path
+package main
 
 import (
-	"WarehouseSimulator/matrix"
 	"errors"
 	"fmt"
 	"sort"
 )
 
-type Node struct {
+type node struct {
 	X      int
 	Y      int
 	cost   int
-	parent *Node
+	parent *node
 }
 
-type Path []*Node
+type path []*node
 
 type pathfinder struct {
-	m      matrix.Matrix
-	start  *Node
-	end    *Node
-	closed []*Node
-	open   []*Node
-	path   Path
+	m      matrix
+	start  *node
+	end    *node
+	closed []*node
+	open   []*node
+	path   path
 }
 
 func abs(i int) int {
@@ -32,22 +31,18 @@ func abs(i int) int {
 	return i
 }
 
-func (p Path) String() (s string) {
+func (p path) String() (s string) {
 	for i, n := range p {
 		s += fmt.Sprintf("%d: X = %d, Y = %d\n", i, n.X, n.Y)
 	}
 	return
 }
 
-func (p *pathfinder) isStart(n *Node) bool {
-	return n.X == p.start.X && n.Y == p.start.Y
-}
-
-func (p *pathfinder) isEnd(n *Node) bool {
+func (p *pathfinder) isEnd(n *node) bool {
 	return n.X == p.end.X && n.Y == p.end.Y
 }
 
-func (p *pathfinder) isClosed(n *Node) bool {
+func (p *pathfinder) isClosed(n *node) bool {
 	for _, c := range p.closed {
 		if c.X == n.X && c.Y == n.Y {
 			return true
@@ -56,7 +51,7 @@ func (p *pathfinder) isClosed(n *Node) bool {
 	return false
 }
 
-func (p *pathfinder) removeOpen(n *Node) {
+func (p *pathfinder) removeOpen(n *node) {
 	for i, o := range p.open {
 		if o.X == n.X && o.Y == n.Y {
 			p.open = append(p.open[:i], p.open[i+1:]...)
@@ -64,19 +59,19 @@ func (p *pathfinder) removeOpen(n *Node) {
 	}
 }
 
-func (p *pathfinder) addOpen(n *Node) {
+func (p *pathfinder) addOpen(n *node) {
 	p.open = append(p.open, n)
 }
 
-func (p *pathfinder) addClosed(n *Node) {
+func (p *pathfinder) addClosed(n *node) {
 	p.closed = append(p.closed, n)
 }
 
-func (p *pathfinder) addPath(n *Node) {
+func (p *pathfinder) addPath(n *node) {
 	p.path = append(p.path, n)
 }
 
-func (p *pathfinder) isOpen(n *Node) bool {
+func (p *pathfinder) isOpen(n *node) bool {
 	for _, c := range p.open {
 		if c.X == n.X && c.Y == n.Y {
 			return true
@@ -85,7 +80,7 @@ func (p *pathfinder) isOpen(n *Node) bool {
 	return false
 }
 
-func (p *pathfinder) isEmpty(n *Node) bool {
+func (p *pathfinder) isEmpty(n *node) bool {
 	if n.X < 0 || n.X >= p.m.Width || n.Y < 0 || n.Y >= p.m.Height {
 		return false
 	}
@@ -95,16 +90,16 @@ func (p *pathfinder) isEmpty(n *Node) bool {
 	}
 
 	c := p.m.Rows[n.Y][n.X]
-	if c.Content != matrix.Empty && c.Content != matrix.Truck {
+	if c.Content != Empty && c.Content != Truck {
 		return false
 	}
 
 	return true
 }
 
-func (p *pathfinder) getLowestCostOpenNode() (*Node, error) {
+func (p *pathfinder) getLowestCostOpenNode() (*node, error) {
 	if len(p.open) == 0 {
-		return &Node{}, errors.New("NO PATH")
+		return &node{}, errors.New("no path")
 	}
 	sort.Slice(p.open, func(i, j int) bool {
 		return p.open[i].cost < p.open[j].cost
@@ -125,12 +120,12 @@ func (p *pathfinder) connectPath() {
 	}
 }
 
-func (p *pathfinder) computeCost(n *Node) int {
+func (p *pathfinder) computeCost(n *node) int {
 	return abs(p.end.X-n.X) + abs(p.end.Y-n.Y)
 }
 
-func (p *pathfinder) Find(parent *Node) (err error) {
-	nodes := [4]*Node{
+func (p *pathfinder) Find(parent *node) (err error) {
+	nodes := [4]*node{
 		{parent.X, parent.Y - 1, 0, parent}, // TOP
 		{parent.X - 1, parent.Y, 0, parent}, // LEFT
 		{parent.X, parent.Y + 1, 0, parent}, // BOTTOM
@@ -148,20 +143,21 @@ func (p *pathfinder) Find(parent *Node) (err error) {
 
 	if err != nil {
 		return
-	} else if p.isEnd(parent) {
+	}
+
+	if p.isEnd(parent) {
 		p.end = parent
 		p.connectPath()
 		return
-	} else {
-		p.removeOpen(parent)
-		p.addClosed(parent)
-		err = p.Find(parent)
 	}
+	p.removeOpen(parent)
+	p.addClosed(parent)
+	err = p.Find(parent)
 	return
 }
 
-func Find(m matrix.Matrix, start *Node, end *Node) (Path, error) {
-	p := &pathfinder{m, start, end, make([]*Node, 0), make([]*Node, 0), make([]*Node, 0)}
+func findPath(m matrix, start *node, end *node) (path, error) {
+	p := &pathfinder{m, start, end, make([]*node, 0), make([]*node, 0), make([]*node, 0)}
 
 	p.closed = append(p.closed, start)
 	err := p.Find(start)

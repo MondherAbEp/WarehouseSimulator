@@ -1,4 +1,4 @@
-package constraints
+package main
 
 import (
 	"bufio"
@@ -39,9 +39,7 @@ type truck struct {
 	turns     int
 }
 
-// Constraints contains all the information used by the Operator
-// related to the objects (parcels, pallet trucks and trucks) in the warehouse
-type Constraints struct {
+type constraints struct {
 	Warehouse    warehouse
 	Parcels      []parcel
 	PalletTrucks []palletTruck
@@ -50,7 +48,7 @@ type Constraints struct {
 
 var errUnknownColor = errors.New("unknown Type")
 
-func (c Constraints) String() (s string) {
+func (c constraints) String() (s string) {
 	s = "Constraints:\n"
 	s += fmt.Sprintf("• Warehouse: width = %d, height = %d, Turns = %d\n", c.Warehouse.Width, c.Warehouse.Height, c.Warehouse.Turns)
 
@@ -91,12 +89,11 @@ func getParcelType(color string) (packageColor parcelType, err error) {
 	return
 }
 
-func addPackage(constraints *Constraints, values []string) {
+func addPackage(constraints *constraints, values []string) {
 	name := values[0]
 	x, _ := strconv.Atoi(values[1])
 	y, _ := strconv.Atoi(values[2])
 	color, err := getParcelType(values[3])
-
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -104,7 +101,7 @@ func addPackage(constraints *Constraints, values []string) {
 	constraints.Parcels = append(constraints.Parcels, parcel{name, x, y, color})
 }
 
-func addPalletTruck(constraints *Constraints, values []string) {
+func addPalletTruck(constraints *constraints, values []string) {
 	name := values[0]
 	x, _ := strconv.Atoi(values[1])
 	y, _ := strconv.Atoi(values[2])
@@ -112,7 +109,7 @@ func addPalletTruck(constraints *Constraints, values []string) {
 	constraints.PalletTrucks = append(constraints.PalletTrucks, palletTruck{name, x, y})
 }
 
-func addTruck(constraints *Constraints, values []string) {
+func addTruck(constraints *constraints, values []string) {
 	name := values[0]
 	x, _ := strconv.Atoi(values[1])
 	y, _ := strconv.Atoi(values[2])
@@ -122,7 +119,7 @@ func addTruck(constraints *Constraints, values []string) {
 	constraints.Trucks = append(constraints.Trucks, truck{name, x, y, maxWeight, turns})
 }
 
-func assignWarehouse(constraints *Constraints, line string) error {
+func assignWarehouse(constraints *constraints, line string) error {
 	values := strings.Fields(line)
 
 	if len(values) == 3 {
@@ -146,7 +143,7 @@ func assignWarehouse(constraints *Constraints, line string) error {
 	return nil
 }
 
-func assignConstraint(constraints *Constraints, line string) {
+func assignConstraint(constraints *constraints, line string) {
 	values := strings.Fields(line)
 
 	switch len(values) {
@@ -163,8 +160,7 @@ func sanitizeLine(rawLine []byte) string {
 	return strings.TrimSpace(string(rawLine))
 }
 
-// Get creates an instance of Constraints from the provided file
-func Get(filename string) (constraints Constraints, err error) {
+func getConstraints(filename string) (constraints constraints, err error) {
 	file, _ := os.Open(filename)
 	defer file.Close()
 

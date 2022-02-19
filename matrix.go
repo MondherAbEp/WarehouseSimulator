@@ -1,7 +1,6 @@
-package matrix
+package main
 
 import (
-	"WarehouseSimulator/constraints"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
@@ -19,13 +18,13 @@ type cell struct {
 
 type row []cell
 
-type Matrix struct {
+type matrix struct {
 	Width  int
 	Height int
 	Rows   []row
 }
 
-func (m Matrix) String() string {
+func (m matrix) String() string {
 	t := table.NewWriter()
 	t.SetStyle(table.StyleLight)
 	t.Style().Options.SeparateRows = true
@@ -33,8 +32,8 @@ func (m Matrix) String() string {
 	for y := 0; y < m.Height; y++ {
 		var row []interface{}
 		for x := 0; x < m.Width; x++ {
-			cell := m.Rows[y][x]
-			switch cell.Content {
+			c := m.Rows[y][x]
+			switch c.Content {
 			case Empty:
 				row = append(row, "  ")
 			case Parcel:
@@ -50,7 +49,7 @@ func (m Matrix) String() string {
 	return t.Render()
 }
 
-func allocateMatrix(m *Matrix) {
+func allocateMatrix(m *matrix) {
 	m.Rows = make([]row, m.Height)
 
 	for y := 0; y < m.Height; y++ {
@@ -58,7 +57,7 @@ func allocateMatrix(m *Matrix) {
 	}
 }
 
-func populateMatrix(m Matrix, c constraints.Constraints) {
+func populateMatrix(m matrix, c constraints) {
 	for _, parcel := range c.Parcels {
 		m.Rows[parcel.Y][parcel.X] = cell{Parcel, parcel.Name}
 	}
@@ -70,7 +69,7 @@ func populateMatrix(m Matrix, c constraints.Constraints) {
 	}
 }
 
-func Create(c constraints.Constraints) (m Matrix, err error) {
+func createMatrix(c constraints) (m matrix, err error) {
 	m.Width = c.Warehouse.Width
 	m.Height = c.Warehouse.Height
 
