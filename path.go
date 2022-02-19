@@ -99,7 +99,7 @@ func (p *pathfinder) isEmpty(n *node) bool {
 
 func (p *pathfinder) getLowestCostOpenNode() (*node, error) {
 	if len(p.open) == 0 {
-		return &node{}, errors.New("no path")
+		return nil, errors.New("no path")
 	}
 	sort.Slice(p.open, func(i, j int) bool {
 		return p.open[i].cost < p.open[j].cost
