@@ -48,26 +48,30 @@ type constraints struct {
 
 var errUnknownColor = errors.New("unknown Type")
 
+func (p parcel) String() string {
+	return fmt.Sprintf("%s: x = %d, y = %d, Type = %s", p.Name, p.X, p.Y, p.Type.name)
+}
+
 func (c constraints) String() (s string) {
 	s = "Constraints:\n"
 	s += fmt.Sprintf("• Warehouse: width = %d, height = %d, Turns = %d\n", c.Warehouse.Width, c.Warehouse.Height, c.Warehouse.Turns)
 
 	if len(c.Parcels) > 0 {
 		s += "• Parcels:\n"
-		for _, parcel := range c.Parcels {
-			s += fmt.Sprintf("\t• %s: x = %d, y = %d, Type = %s\n", parcel.Name, parcel.X, parcel.Y, parcel.Type.name)
+		for _, p := range c.Parcels {
+			s += fmt.Sprintf("\t• %s: x = %d, y = %d, Type = %s\n", p.Name, p.X, p.Y, p.Type.name)
 		}
 	}
 	if len(c.PalletTrucks) > 0 {
 		s += "• PalletTrucks:\n"
-		for _, palletTruck := range c.PalletTrucks {
-			s += fmt.Sprintf("\t• %s: x = %d, y = %d\n", palletTruck.Name, palletTruck.X, palletTruck.Y)
+		for _, pt := range c.PalletTrucks {
+			s += fmt.Sprintf("\t• %s: x = %d, y = %d\n", pt.Name, pt.X, pt.Y)
 		}
 	}
 	if len(c.Trucks) > 0 {
 		s += "• Trucks:\n"
-		for _, truck := range c.Trucks {
-			s += fmt.Sprintf("\t• %s: x = %d, y = %d, maxWeight = %d, Turns = %d\n", truck.Name, truck.X, truck.Y, truck.maxWeight, truck.turns)
+		for _, t := range c.Trucks {
+			s += fmt.Sprintf("\t• %s: x = %d, y = %d, maxWeight = %d, Turns = %d\n", t.Name, t.X, t.Y, t.maxWeight, t.turns)
 		}
 	}
 	return

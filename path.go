@@ -90,7 +90,7 @@ func (p *pathfinder) isEmpty(n *node) bool {
 	}
 
 	c := p.m.Rows[n.Y][n.X]
-	if c.Content != Empty && c.Content != Truck {
+	if !p.isEnd(n) && c.Content != Empty && c.Content != Truck {
 		return false
 	}
 
