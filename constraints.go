@@ -52,6 +52,10 @@ func (p parcel) String() string {
 	return fmt.Sprintf("%s: x = %d, y = %d, Type = %s", p.Name, p.X, p.Y, p.Type.name)
 }
 
+func (t truck) String() string {
+	return fmt.Sprintf("%s: x = %d, y = %d", t.Name, t.X, t.Y)
+}
+
 func (c constraints) String() (s string) {
 	s = "Constraints:\n"
 	s += fmt.Sprintf("• Warehouse: width = %d, height = %d, Turns = %d\n", c.Warehouse.Width, c.Warehouse.Height, c.Warehouse.Turns)
