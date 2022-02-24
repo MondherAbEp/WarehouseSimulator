@@ -5,6 +5,23 @@ import (
 	"os"
 )
 
+func start(c constraints) {
+	workers := getWorkers(c)
+
+	for turn := 1; turn <= c.Warehouse.Turns; turn++ {
+		fmt.Printf("tour %d\n", turn)
+		for _, w := range workers {
+			w.work(&c)
+		}
+		fmt.Println()
+	}
+	if len(c.Parcels) == 0 {
+		fmt.Print("😎")
+	} else {
+		fmt.Print("🙂")
+	}
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("missing file")
@@ -17,5 +34,5 @@ func main() {
 		return
 	}
 
-	work(c)
+	start(c)
 }

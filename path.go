@@ -28,8 +28,8 @@ type pathfinder struct {
 }
 
 type pathResult struct {
-	i int
-	p path
+	name string
+	p    path
 }
 
 func (p path) String() (s string) {
@@ -148,19 +148,19 @@ func findPath(m matrix, start node, end node) (path, error) {
 	return pf.find()
 }
 
-func getAllPaths(m matrix, start node, ends []node) []pathResult {
+func getAllPaths(m matrix, start node, ends map[string]node) []pathResult {
 	var paths []pathResult
 	var wg sync.WaitGroup
 
 	queue := make(chan pathResult, len(ends))
 
-	for i, end := range ends {
+	for name, end := range ends {
 		wg.Add(1)
-		go func(i int, end node) {
+		go func(name string, end node) {
 			defer wg.Done()
 			p, _ := findPath(m, start, end)
-			queue <- pathResult{i, p}
-		}(i, end)
+			queue <- pathResult{name, p}
+		}(name, end)
 	}
 
 	wg.Wait()
@@ -175,39 +175,45 @@ func getAllPaths(m matrix, start node, ends []node) []pathResult {
 	return paths
 }
 
-func findClosestParcel(m matrix, pt palletTruck, parcels []parcel) (parcel, error) {
+func findClosestParcel(m matrix, pt palletTruck, parcels map[string]parcel) (string, path, error) {
 	start := node{X: pt.X, Y: pt.Y}
-	ends := make([]node, len(parcels))
+	ends := make(map[string]node, len(parcels))
 
-	for i, p := range parcels {
-		ends[i] = node{X: p.X, Y: p.Y}
+	for name, p := range parcels {
+		ends[name] = node{X: p.X, Y: p.Y}
 	}
 
 	paths := getAllPaths(m, start, ends)
 	if len(paths) == 0 {
-		return parcel{}, errors.New("no parcel found")
+		return "", path{}, errors.New("no parcel found")
 	}
 	sort.Slice(paths, func(i, j int) bool {
 		return len(paths[i].p) < len(paths[j].p)
 	})
-	return parcels[paths[0].i], nil
+
+	pathResult := paths[0]
+
+	return pathResult.name, pathResult.p[:len(pathResult.p)-1], nil
 }
 
-func findClosestTruck(m matrix, pt palletTruck, trucks []truck) (truck, error) {
+func findClosestTruck(m matrix, pt palletTruck, trucks map[string]truck) (string, path, error) {
 	start := node{X: pt.X, Y: pt.Y}
-	ends := make([]node, len(trucks))
+	ends := make(map[string]node, len(trucks))
 
-	for i, t := range trucks {
-		ends[i] = node{X: t.X, Y: t.Y}
+	for name, t := range trucks {
+		ends[name] = node{X: t.X, Y: t.Y}
 	}
 
 	paths := getAllPaths(m, start, ends)
 	if len(paths) == 0 {
-		return truck{}, errors.New("no truck found")
+		return "", path{}, errors.New("no truck found")
 	}
 
 	sort.Slice(paths, func(i, j int) bool {
 		return len(paths[i].p) < len(paths[j].p)
 	})
-	return trucks[paths[0].i], nil
+
+	pathResult := paths[0]
+
+	return pathResult.name, pathResult.p, nil
 }

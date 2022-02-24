@@ -22,18 +22,15 @@ type parcelType struct {
 }
 
 type parcel struct {
-	Name string
 	X, Y int
 	Type parcelType
 }
 
 type palletTruck struct {
-	Name string
 	X, Y int
 }
 
 type truck struct {
-	Name      string
 	X, Y      int
 	maxWeight int
 	turns     int
@@ -41,55 +38,22 @@ type truck struct {
 
 type constraints struct {
 	Warehouse    warehouse
-	Parcels      []parcel
-	PalletTrucks []palletTruck
-	Trucks       []truck
+	Parcels      map[string]parcel
+	PalletTrucks map[string]palletTruck
+	Trucks       map[string]truck
 }
 
 var errUnknownColor = errors.New("unknown Type")
 
-func (p parcel) String() string {
-	return fmt.Sprintf("%s: x = %d, y = %d, Type = %s", p.Name, p.X, p.Y, p.Type.name)
-}
-
-func (t truck) String() string {
-	return fmt.Sprintf("%s: x = %d, y = %d", t.Name, t.X, t.Y)
-}
-
-func (c constraints) String() (s string) {
-	s = "Constraints:\n"
-	s += fmt.Sprintf("• Warehouse: width = %d, height = %d, Turns = %d\n", c.Warehouse.Width, c.Warehouse.Height, c.Warehouse.Turns)
-
-	if len(c.Parcels) > 0 {
-		s += "• Parcels:\n"
-		for _, p := range c.Parcels {
-			s += fmt.Sprintf("\t• %s: x = %d, y = %d, Type = %s\n", p.Name, p.X, p.Y, p.Type.name)
-		}
-	}
-	if len(c.PalletTrucks) > 0 {
-		s += "• PalletTrucks:\n"
-		for _, pt := range c.PalletTrucks {
-			s += fmt.Sprintf("\t• %s: x = %d, y = %d\n", pt.Name, pt.X, pt.Y)
-		}
-	}
-	if len(c.Trucks) > 0 {
-		s += "• Trucks:\n"
-		for _, t := range c.Trucks {
-			s += fmt.Sprintf("\t• %s: x = %d, y = %d, maxWeight = %d, Turns = %d\n", t.Name, t.X, t.Y, t.maxWeight, t.turns)
-		}
-	}
-	return
-}
-
 func getParcelType(color string) (packageColor parcelType, err error) {
-	color = strings.ToLower(color)
+	color = strings.ToUpper(color)
 
 	switch color {
-	case "yellow":
+	case "YELLOW":
 		packageColor = parcelType{color, 100}
-	case "green":
+	case "GREEN":
 		packageColor = parcelType{color, 200}
-	case "blue":
+	case "BLUE":
 		packageColor = parcelType{color, 500}
 	default:
 		err = fmt.Errorf("%w: %s", errUnknownColor, color)
@@ -106,7 +70,7 @@ func addPackage(constraints *constraints, values []string) {
 		fmt.Print(err)
 	}
 
-	constraints.Parcels = append(constraints.Parcels, parcel{name, x, y, color})
+	constraints.Parcels[name] = parcel{x, y, color}
 }
 
 func addPalletTruck(constraints *constraints, values []string) {
@@ -114,7 +78,7 @@ func addPalletTruck(constraints *constraints, values []string) {
 	x, _ := strconv.Atoi(values[1])
 	y, _ := strconv.Atoi(values[2])
 
-	constraints.PalletTrucks = append(constraints.PalletTrucks, palletTruck{name, x, y})
+	constraints.PalletTrucks[name] = palletTruck{x, y}
 }
 
 func addTruck(constraints *constraints, values []string) {
@@ -124,7 +88,7 @@ func addTruck(constraints *constraints, values []string) {
 	maxWeight, _ := strconv.Atoi(values[3])
 	turns, _ := strconv.Atoi(values[4])
 
-	constraints.Trucks = append(constraints.Trucks, truck{name, x, y, maxWeight, turns})
+	constraints.Trucks[name] = truck{x, y, maxWeight, turns}
 }
 
 func assignWarehouse(constraints *constraints, line string) error {
@@ -168,18 +132,25 @@ func sanitizeLine(rawLine []byte) string {
 	return strings.TrimSpace(string(rawLine))
 }
 
-func getConstraints(filename string) (constraints constraints, err error) {
+func getConstraints(filename string) (constraints, error) {
 	file, _ := os.Open(filename)
 	defer file.Close()
+
+	c := constraints{
+		Warehouse:    warehouse{},
+		Parcels:      make(map[string]parcel),
+		PalletTrucks: make(map[string]palletTruck),
+		Trucks:       make(map[string]truck),
+	}
 
 	reader := bufio.NewReader(file)
 
 	rawLine, _, err := reader.ReadLine()
 	line := sanitizeLine(rawLine)
 
-	err = assignWarehouse(&constraints, line)
+	err = assignWarehouse(&c, line)
 	if err != nil {
-		return
+		return constraints{}, err
 	}
 
 	for {
@@ -190,8 +161,8 @@ func getConstraints(filename string) (constraints constraints, err error) {
 		}
 
 		line := sanitizeLine(rawLine)
-		assignConstraint(&constraints, line)
+		assignConstraint(&c, line)
 	}
 
-	return
+	return c, nil
 }

@@ -58,14 +58,14 @@ func allocateMatrix(m *matrix) {
 }
 
 func populateMatrix(m matrix, c constraints) {
-	for _, parcel := range c.Parcels {
-		m.Rows[parcel.Y][parcel.X] = cell{Parcel, parcel.Name}
+	for name, parcel := range c.Parcels {
+		m.Rows[parcel.Y][parcel.X] = cell{Parcel, name}
 	}
-	for _, palletTruck := range c.PalletTrucks {
-		m.Rows[palletTruck.Y][palletTruck.X] = cell{PalletTruck, palletTruck.Name}
+	for name, palletTruck := range c.PalletTrucks {
+		m.Rows[palletTruck.Y][palletTruck.X] = cell{PalletTruck, name}
 	}
-	for _, truck := range c.Trucks {
-		m.Rows[truck.Y][truck.X] = cell{Truck, truck.Name}
+	for name, truck := range c.Trucks {
+		m.Rows[truck.Y][truck.X] = cell{Truck, name}
 	}
 }
 
