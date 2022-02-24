@@ -1,9 +1,5 @@
 package main
 
-import (
-	"github.com/jedib0t/go-pretty/v6/table"
-)
-
 const (
 	Empty = iota
 	Parcel
@@ -22,31 +18,6 @@ type matrix struct {
 	Width  int
 	Height int
 	Rows   []row
-}
-
-func (m matrix) String() string {
-	t := table.NewWriter()
-	t.SetStyle(table.StyleLight)
-	t.Style().Options.SeparateRows = true
-
-	for y := 0; y < m.Height; y++ {
-		var row []interface{}
-		for x := 0; x < m.Width; x++ {
-			c := m.Rows[y][x]
-			switch c.Content {
-			case Empty:
-				row = append(row, "  ")
-			case Parcel:
-				row = append(row, "📦")
-			case PalletTruck:
-				row = append(row, "👷")
-			case Truck:
-				row = append(row, "🚚")
-			}
-		}
-		t.AppendRow(row)
-	}
-	return t.Render()
 }
 
 func allocateMatrix(m *matrix) {
