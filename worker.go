@@ -19,14 +19,29 @@ type worker struct {
 	path       path
 }
 
-func (w *worker) move(c *constraints) {
+func (w *worker) checkDriver(c *constraints, drivers map[string]*driver) {
+	p := c.Parcels[w.parcelName]
+	d := drivers[w.truckName]
+
+	if d.status == Gone {
+		w.status = Waiting
+	} else {
+		fmt.Printf("%s LEAVE %s %s\n", w.name, w.parcelName, p.Type.name)
+		d.totalWeight += p.Type.weight
+		delete(c.Parcels, w.parcelName)
+		if len(c.Parcels) == 0 {
+			w.status = Blocked
+		} else {
+			w.assignParcel(c)
+		}
+	}
+}
+
+func (w *worker) move(c *constraints, drivers map[string]*driver) {
 	if len(w.path) == 0 {
 		switch w.status {
-		case TowardsTruck:
-			p := c.Parcels[w.parcelName]
-			fmt.Printf("%s LEAVE %s %s\n", w.name, w.parcelName, p.Type.name)
-			delete(c.Parcels, w.parcelName)
-			w.assignParcel(c)
+		case Waiting, TowardsTruck:
+			w.checkDriver(c, drivers)
 		case TowardsParcel:
 			p := c.Parcels[w.parcelName]
 			fmt.Printf("%s TAKE %s %s\n", w.name, w.parcelName, p.Type.name)
@@ -69,13 +84,13 @@ func (w *worker) assignParcel(c *constraints) {
 	}
 }
 
-func (w *worker) work(c *constraints) {
+func (w *worker) work(c *constraints, drivers map[string]*driver) {
 	switch w.status {
 	case TowardsTruck, TowardsParcel:
-		w.move(c)
+		w.move(c, drivers)
 	case Sleeping:
 		w.assignParcel(c)
-	case Waiting:
+	case Waiting, Blocked:
 		fmt.Printf("%s WAIT\n", w.name)
 	}
 }
@@ -85,7 +100,7 @@ func getWorkers(c constraints) map[string]*worker {
 
 	for name, pt := range c.PalletTrucks {
 		w := &worker{status: Sleeping, name: name, pt: &pt}
-		w.work(&c)
+		w.work(&c, nil)
 		workers[name] = w
 	}
 	return workers

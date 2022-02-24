@@ -7,11 +7,15 @@ import (
 
 func start(c constraints) {
 	workers := getWorkers(c)
+	drivers := getDrivers(c)
 
 	for turn := 1; turn <= c.Warehouse.Turns; turn++ {
 		fmt.Printf("tour %d\n", turn)
 		for _, w := range workers {
-			w.work(&c)
+			w.work(&c, drivers)
+		}
+		for _, d := range drivers {
+			d.work(c)
 		}
 		fmt.Println()
 	}
