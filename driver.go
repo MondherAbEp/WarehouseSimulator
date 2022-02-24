@@ -16,7 +16,7 @@ type driver struct {
 }
 
 func (d *driver) checkWeight(c constraints) {
-	if (float64(d.totalWeight)/float64(d.t.maxWeight) > 0.5) ||
+	if (float64(d.totalWeight)/float64(d.t.maxWeight) > 0.8) ||
 		(d.totalWeight > 0 && len(c.Parcels) == 0) {
 		d.remainingTurns = d.t.turns
 		d.status = Gone

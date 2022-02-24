@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func start(c constraints) {
+func start(c constraints) error {
 	workers := getWorkers(c)
 	drivers := getDrivers(c)
 
@@ -24,6 +24,7 @@ func start(c constraints) {
 	} else {
 		fmt.Print("🙂")
 	}
+	return nil
 }
 
 func main() {
@@ -34,9 +35,13 @@ func main() {
 
 	c, err := getConstraints(os.Args[1])
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("😱 %s", err)
 		return
 	}
 
-	start(c)
+	err = start(c)
+	if err != nil {
+		fmt.Print("😱")
+		return
+	}
 }

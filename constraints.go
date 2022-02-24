@@ -106,8 +106,8 @@ func assignWarehouse(constraints *constraints, line string) error {
 		}
 
 		turns, err := strconv.Atoi(values[2])
-		if err != nil || turns < 1 {
-			return fmt.Errorf("incorrect Turns: %s", values[2])
+		if err != nil || turns < 10 || turns > 100_000 {
+			return fmt.Errorf("incorrect turns: %s", values[2])
 		}
 
 		constraints.Warehouse = warehouse{width, height, turns}
